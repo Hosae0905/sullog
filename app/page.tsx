@@ -1,9 +1,23 @@
 import Image from "next/image";
+import prisma from "@/lib/db-prisma";
 
-export default function Home() {
+
+export default async function Home() {
+  const findUser = await prisma.user.findFirst({
+    where: { id: 1 },
+  });
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <div>
+            <h2 className="mb-6 text-2xl font-semibold text-zinc-950 dark:text-zinc-50">
+                Prisma 연결 테스트
+            </h2>
+            <p className="text-zinc-700 dark:text-zinc-400">
+                {findUser ? `데이터베이스 연결 성공: ${ findUser.name }` : "데이터베이스 연결 실패"}
+            </p>
+        </div>
         <Image
           className="dark:invert"
           src="/next.svg"
