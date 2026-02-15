@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.3.0",
   "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id   Int    @id @default(autoincrement())\n  name String\n}\n",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\n// prisma/schema.prisma\n\n// 1. 유저 (기존 테이블 확장)\nmodel User {\n  id        String   @id @default(uuid())\n  email     String   @unique\n  nickname  String?\n  posts     Post[] // 유저가 쓴 시음기들\n  scraps    Scrap[] // 유저가 스크랩한 글들\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  @@map(\"users\")\n}\n\n// 2. 주종 카테고리 (위스키, 와인, 맥주 등)\nmodel Category {\n  id     Int     @id @default(autoincrement())\n  name   String  @unique\n  drinks Drink[]\n\n  @@map(\"categories\")\n}\n\n// 3. 술 마스터 정보 (사전 데이터)\nmodel Drink {\n  id         String   @id @default(uuid())\n  categoryId Int      @map(\"category_id\")\n  category   Category @relation(fields: [categoryId], references: [id])\n  nameKo     String   @map(\"name_ko\")\n  nameEn     String?  @map(\"name_en\")\n  abv        Float? // 도수\n  isVerified Boolean  @default(false) @map(\"is_verified\")\n  posts      Post[]\n\n  @@map(\"drinks\")\n}\n\n// 4. 시음기 (핵심 콘텐츠)\nmodel Post {\n  id        String   @id @default(uuid())\n  userId    String   @map(\"user_id\")\n  user      User     @relation(fields: [userId], references: [id])\n  drinkId   String   @map(\"drink_id\")\n  drink     Drink    @relation(fields: [drinkId], references: [id])\n  rating    Float // 평점\n  tasteData Json     @map(\"taste_data\") // { \"단맛\": 3, \"산미\": 2 } 식의 유연한 구조\n  content   String?  @db.Text\n  images    String[]\n  scraps    Scrap[]\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  @@map(\"posts\")\n}\n\n// 5. 스크랩 (찜하기)\nmodel Scrap {\n  id        String   @id @default(uuid())\n  userId    String   @map(\"user_id\")\n  user      User     @relation(fields: [userId], references: [id])\n  postId    String   @map(\"post_id\")\n  post      Post     @relation(fields: [postId], references: [id])\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  @@unique([userId, postId]) // 한 유저가 한 게시글을 중복 스크랩 방지\n  @@map(\"scraps\")\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nickname\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostToUser\"},{\"name\":\"scraps\",\"kind\":\"object\",\"type\":\"Scrap\",\"relationName\":\"ScrapToUser\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"}],\"dbName\":\"users\"},\"Category\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"drinks\",\"kind\":\"object\",\"type\":\"Drink\",\"relationName\":\"CategoryToDrink\"}],\"dbName\":\"categories\"},\"Drink\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"categoryId\",\"kind\":\"scalar\",\"type\":\"Int\",\"dbName\":\"category_id\"},{\"name\":\"category\",\"kind\":\"object\",\"type\":\"Category\",\"relationName\":\"CategoryToDrink\"},{\"name\":\"nameKo\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"name_ko\"},{\"name\":\"nameEn\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"name_en\"},{\"name\":\"abv\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"isVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\",\"dbName\":\"is_verified\"},{\"name\":\"posts\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"DrinkToPost\"}],\"dbName\":\"drinks\"},\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"user_id\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"PostToUser\"},{\"name\":\"drinkId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"drink_id\"},{\"name\":\"drink\",\"kind\":\"object\",\"type\":\"Drink\",\"relationName\":\"DrinkToPost\"},{\"name\":\"rating\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"tasteData\",\"kind\":\"scalar\",\"type\":\"Json\",\"dbName\":\"taste_data\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"images\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"scraps\",\"kind\":\"object\",\"type\":\"Scrap\",\"relationName\":\"PostToScrap\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"}],\"dbName\":\"posts\"},\"Scrap\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"user_id\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ScrapToUser\"},{\"name\":\"postId\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"post_id\"},{\"name\":\"post\",\"kind\":\"object\",\"type\":\"Post\",\"relationName\":\"PostToScrap\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"}],\"dbName\":\"scraps\"}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -185,6 +185,46 @@ export interface PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.category`: Exposes CRUD operations for the **Category** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Categories
+    * const categories = await prisma.category.findMany()
+    * ```
+    */
+  get category(): Prisma.CategoryDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.drink`: Exposes CRUD operations for the **Drink** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Drinks
+    * const drinks = await prisma.drink.findMany()
+    * ```
+    */
+  get drink(): Prisma.DrinkDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.post`: Exposes CRUD operations for the **Post** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Posts
+    * const posts = await prisma.post.findMany()
+    * ```
+    */
+  get post(): Prisma.PostDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.scrap`: Exposes CRUD operations for the **Scrap** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Scraps
+    * const scraps = await prisma.scrap.findMany()
+    * ```
+    */
+  get scrap(): Prisma.ScrapDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

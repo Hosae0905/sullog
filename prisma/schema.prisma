@@ -13,7 +13,69 @@ datasource db {
   provider = "postgresql"
 }
 
+// prisma/schema.prisma
+
+// 1. 유저 (기존 테이블 확장)
 model User {
-  id        Int     @id @default(autoincrement())
-  name      String?
+  id        String   @id @default(uuid())
+  email     String   @unique
+  nickname  String?
+  posts     Post[]   // 유저가 쓴 시음기들
+  scraps    Scrap[]  // 유저가 스크랩한 글들
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+// 2. 주종 카테고리 (위스키, 와인, 맥주 등)
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  drinks Drink[]
+
+  @@map("categories")
+}
+
+// 3. 술 마스터 정보 (사전 데이터)
+model Drink {
+  id          String   @id @default(uuid())
+  categoryId  Int      @map("category_id")
+  category    Category @relation(fields: [categoryId], references: [id])
+  nameKo      String   @map("name_ko")
+  nameEn      String?  @map("name_en")
+  abv         Float?   // 도수
+  isVerified  Boolean  @default(false) @map("is_verified")
+  posts       Post[]
+
+  @@map("drinks")
+}
+
+// 4. 시음기 (핵심 콘텐츠)
+model Post {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+  drinkId     String   @map("drink_id")
+  drink       Drink    @relation(fields: [drinkId], references: [id])
+  rating      Float    // 평점
+  tasteData   Json     @map("taste_data") // { "단맛": 3, "산미": 2 } 식의 유연한 구조
+  content     String?  @db.Text
+  images      String[]
+  scraps      Scrap[]
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("posts")
+}
+
+// 5. 스크랩 (찜하기)
+model Scrap {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  postId    String   @map("post_id")
+  post      Post     @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, postId]) // 한 유저가 한 게시글을 중복 스크랩 방지
+  @@map("scraps")
 }
