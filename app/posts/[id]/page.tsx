@@ -3,6 +3,8 @@
 
 import React from 'react';
 import Link from 'next/link';
+import TasteChart from "@/components/posts/TasteChart";
+
 
 // UI 확인을 위한 임시 데이터
 const MOCK_POST = {
@@ -12,13 +14,21 @@ const MOCK_POST = {
     category: "위스키",
     abv: 40,
     rating: 4.5,
-    content: `첫 향에서 느껴지는 달콤한 바닐라와 꿀의 풍미가 아주 매력적입니다. 
-            목 넘김이 부드러워 입문자에게 추천하고 싶네요. 
-            뒷맛에서 살짝 느껴지는 시나몬의 스파이시함이 지루하지 않게 해줍니다.`,
+    content: `첫 향에서 느껴지는 달콤한 바닐라와 꿀의 풍미가 아주 매력적입니다. \n
+    목 넘김이 부드러워 입문자에게 추천하고 싶네요. \n
+    뒷맛에서 살짝 느껴지는 시나몬의 스파이시함이 지루하지 않게 해줍니다.`,
     imageUrl: "",
     author: "위스키꿈나무",
     createdAt: "2024. 02. 15",
 };
+
+const TASTE_DATA = [
+    { subject: '달콤함', value: 4 },
+    { subject: '스파이시함', value: 3 },
+    { subject: '바디감', value: 4 },
+    { subject: '피니시', value: 5 },
+    { subject: '피트', value: 2 },
+];
 
 export default function PostDetailPage() {
     return (
@@ -68,7 +78,7 @@ export default function PostDetailPage() {
 
             {/* 차트 영역 (임시) */}
             <div className="h-64 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 border border-gray-100">
-                <p className="text-gray-400 text-sm font-medium">Taste Data Visualization</p>
+                <TasteChart data={TASTE_DATA}></TasteChart>
             </div>
 
             {/* 본문 시음평 */}
