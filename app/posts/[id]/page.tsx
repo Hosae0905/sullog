@@ -9,8 +9,6 @@ export default async function PostDetailPage(props: { params: Promise<{ id: stri
 
     const { id } = await props.params;
 
-    console.log('post id = ', id);
-
     // 1. DB에서 게시글 정보 가져오기
     // 관계된 술 정보와 카테고리까지 한 번에 가져오기
     const post = await db.post.findUnique({

@@ -38,3 +38,27 @@ export async function createPost(formData: FormData) {
         return { success: false, error: String(error) };
     }
 }
+
+export async function searchDrinks(query: string) {
+    if (!query || query.length < 1) return [];
+
+    try {
+        const results = await db.drink.findMany({
+            where: {
+                nameKo: {
+                    contains: query,       // 키워드 포함 여부 확인
+                    mode: 'insensitive',  // 대소문자 무시 (한글에선 주로 자음/모음 일치)
+                },
+            },
+            include: {
+                category: true, // 카테고리 정보(위스키, 와인 등)도 함께 가져옴
+            },
+            take: 10, // 성능을 위해 최대 10개만 반환
+        });
+
+        return results;
+    } catch (error) {
+        console.error("검색 중 오류 발생:", error);
+        return [];
+    }
+}
