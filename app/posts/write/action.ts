@@ -2,6 +2,12 @@
 
 import db from "@/lib/db-prisma";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+);
 
 export async function createPost(formData: FormData) {
     try {
@@ -16,6 +22,30 @@ export async function createPost(formData: FormData) {
         const user = await db.user.findFirst();
         if (!user) throw new Error("유저가 존재하지 않습니다.");
 
+        const file = formData.get("imageFile") as File;
+        let imageUrl = "";
+
+        if (file && file.size > 0) {
+            const fileExt = file.name.split(".").pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `posts/${fileName}`;
+
+            const { data, error } = await supabase.storage
+                .from("drink-post-images")
+                .upload(filePath, file);
+
+            if (error) {
+                console.error("이미지 업로드 실패:", error);
+                throw new Error("이미지 업로드에 실패했습니다.");
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from("drink-post-images")
+                .getPublicUrl(filePath);
+
+            imageUrl = publicUrl;
+        }
+
         // DB 저장
         const newPost = await db.post.create({
             data: {
@@ -24,7 +54,7 @@ export async function createPost(formData: FormData) {
                 rating: rating,
                 content: content,
                 tasteData: tasteData,
-                images: [], // 나중에 이미지 업로드 구현 시 추가
+                images: imageUrl ? [imageUrl] : [], // 이미지 URL이 있으면 배열로 저장, 없으면 빈 배열
             },
         });
 

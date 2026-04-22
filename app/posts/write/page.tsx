@@ -28,6 +28,10 @@ export default function WritePostPage() {
         TASTE_CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: 3 }), {})
     );
 
+    // 이미지 상태 추가
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
     // 술 검색 핸들러
     const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -41,9 +45,21 @@ export default function WritePostPage() {
         }
     };
 
+    // 맛 지표 슬라이더 핸들러
     const handleTasteChange = (category: string, value: number) => {
         setTasteData((prev) => ({ ...prev, [category]: value }));
     };
+
+    // 이미지 업로드 핸들러
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+
+            const url = URL.createObjectURL(file);
+            setPreviewUrl(url);
+        }
+    }
 
     return (
         <div className="max-w-md mx-auto p-6 pb-24">
@@ -127,6 +143,46 @@ export default function WritePostPage() {
                             )}
                         </>
                     )}
+                </section>
+
+                 {/*--- 섹션 1.5: 술 사진 업로드 ---*/}
+                <section className="space-y-3">
+                    <label className="text-sm font-bold text-gray-700">술 사진 (선택)</label>
+                    <div className="relative group">
+                        <div className={`flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-3xl overflow-hidden transition-all bg-gray-50 ${previewUrl ? 'border-orange-200' : 'border-gray-200 hover:border-orange-300'}`}>
+
+                            {previewUrl ? (
+                                // 이미지가 있을 때: 미리보기 이미지 출력
+                                <img src={previewUrl} className="w-full h-full object-cover" alt="미리보기" />
+                            ) : (
+                                // 이미지가 없을 때: 업로드 가이드 문구
+                                <div className="text-center space-y-2">
+                                    <div className="text-3xl text-gray-300">📸</div>
+                                    <p className="text-xs text-gray-400 font-medium">시음한 술 사진을 등록해 보세요</p>
+                                </div>
+                            )}
+
+                            {/* 실제 파일 입력창 (투명하게 만들어 영역 전체를 클릭 가능하게 함) */}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                name="imageFile" // Server Action에서 이 이름으로 파일을 받게 됩니다.
+                            />
+                        </div>
+
+                        {/* 사진 취소 버튼 (이미지가 있을 때만 노출) */}
+                        {previewUrl && (
+                            <button
+                                type="button"
+                                onClick={() => { setImageFile(null); setPreviewUrl(null); }}
+                                className="absolute -top-2 -right-2 bg-gray-900 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center shadow-lg"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
                 </section>
 
                 {/* --- 섹션 2: 평점 --- */}
